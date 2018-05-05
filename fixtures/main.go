@@ -3,11 +3,19 @@ package main
 import (
 	"bufio"
 	"database/sql"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/shjp/shjp-server/db"
+)
+
+var (
+	dbUser     = flag.CommandLine.String("user", "shjp", "Postgres username")
+	dbName     = flag.CommandLine.String("dbname", "shjp_youth", "Postgres database name")
+	dbPassword = flag.CommandLine.String("password", "hellochurch", "Password for the postgres database")
+	dbHost     = flag.CommandLine.String("host", "localhost", "Host for Postgres database")
 )
 
 // Order matters here..
@@ -48,7 +56,14 @@ func insert(tx *sql.Tx, table string) error {
 }
 
 func main() {
-	err := db.Init()
+	flag.Parse()
+
+	err := db.Init(db.ConnConfig{
+		User:     *dbUser,
+		Password: *dbPassword,
+		DBName:   *dbName,
+		Host:     *dbHost,
+		SSLMode:  "disable"})
 	if err != nil {
 		log.Printf("Error initializing database: %s", err)
 		os.Exit(1)

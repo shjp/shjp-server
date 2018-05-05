@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 
@@ -11,6 +12,13 @@ import (
 	"github.com/shjp/shjp-server/schema"
 )
 
+var (
+	dbUser     = flag.CommandLine.String("user", "shjp", "Postgres username")
+	dbName     = flag.CommandLine.String("dbname", "shjp_youth", "Postgres database name")
+	dbPassword = flag.CommandLine.String("password", "hellochurch", "Password for the postgres database")
+	dbHost     = flag.CommandLine.String("host", "localhost", "Host for Postgres database")
+)
+
 func main() {
 	schema, err := schema.ConfigSchema()
 	if err != nil {
@@ -18,7 +26,13 @@ func main() {
 		return
 	}
 
-	if err = db.Init(); err != nil {
+	connConfig := db.ConnConfig{
+		User:     *dbUser,
+		Password: *dbPassword,
+		DBName:   *dbName,
+		Host:     *dbHost,
+		SSLMode:  "disable"}
+	if err = db.Init(connConfig); err != nil {
 		log.Printf("Failed initializing DB: %s", err)
 		return
 	}
@@ -34,5 +48,5 @@ func main() {
 	http.Handle("/login", auth.NewLoginHandler())
 
 	log.Println("Server listening to port 8080")
-	http.ListenAndServe(":8080", nil)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
