@@ -26,7 +26,12 @@ make db_init
 ```
 make db_up_dev
 ```
-7. (Optional) If you want to import fixture data:
+7. Get dependencies:
+```
+go get ./...
+```
+in the project root
+8. (Optional) If you want to import fixture data:
 ```
 make db_fixtures
 ```
@@ -34,10 +39,10 @@ make db_fixtures
 ### Windows
 
 1. Download TDM-GCC (https://sourceforge.net/projects/tdm-gcc/?source=typ_redirect)
-2. Set the environment variable to use TDD-GCC:
+2. Set the environment variable to use TDM-GCC:
   * Right-click on your "My Computer" icon and select "Properties"
   * Click on the "Advanced system settings", select "Advanced" tab, then "Environment Variables" button
-  * You will see two boxes. The first box should say "User variables for <USERNAME>". Find "PATH" entry in the first box and click "Edit" button. DO NOT touch the bottom box. Click "New" and enter the bin path of the downloaded TDM-GCC. The default location would be C:\TDD-GCC-64\bin
+  * You will see two boxes. The first box should say "User variables for <USERNAME>". Find "PATH" entry in the first box and click "Edit" button. DO NOT touch the bottom box. Click "New" and enter the bin path of the downloaded TDM-GCC. The default location would be C:\TDM-GCC-64\bin
 3. Download Docker Toolbox and install it (https://docs.docker.com/toobox/overview/#ready-to-get-started)
 4. Fetch the postgres docker image:
 ```
@@ -55,7 +60,12 @@ mingw32-make.exe db_init
 ```
 mingw32-make.exe db_up_dev_win
 ```
-8. (Optional) If you want to import fixture data:
+8. Get dependencies:
+```
+go get ./...
+```
+in the project root
+9. (Optional) If you want to import fixture data:
 ```
 mingw32-make.exe db_fixtures_win
 ```
@@ -67,7 +77,7 @@ make run
 ```
 On windows,
 ```
-make run_win
+mingw32-make.exe run_win
 ```
 
 Type localhost:8080/graphql into the browser address bar and verify that you can see the GraphQL interface.
