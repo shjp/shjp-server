@@ -31,6 +31,7 @@ make db_up_dev
 go get ./...
 ```
 in the project root
+
 8. (Optional) If you want to import fixture data:
 ```
 make db_fixtures
@@ -65,6 +66,7 @@ mingw32-make.exe db_up_dev_win
 go get ./...
 ```
 in the project root
+
 9. (Optional) If you want to import fixture data:
 ```
 mingw32-make.exe db_fixtures_win
