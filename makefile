@@ -40,4 +40,4 @@ run:
 	@go run main.go
 
 run_win:
-	@go run main.go host=`docker-machine.exe ip`
+	@go run main.go --host=`docker-machine.exe ip`

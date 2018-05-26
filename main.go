@@ -20,6 +20,8 @@ var (
 )
 
 func main() {
+	flag.Parse()
+
 	schema, err := schema.ConfigSchema()
 	if err != nil {
 		log.Fatalf("Failed configuring schema: %v", err)
