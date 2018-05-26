@@ -3,6 +3,7 @@ package schema
 import (
 	"github.com/graphql-go/graphql"
 
+	"github.com/shjp/shjp-server/auth"
 	"github.com/shjp/shjp-server/schema/types"
 )
 
@@ -10,7 +11,7 @@ var Mutations = graphql.Fields{
 
 	"createGroup": &graphql.Field{
 		Type:    types.GroupType,
-		Resolve: createGroup,
+		Resolve: auth.Authenticate(createGroup),
 		Args: graphql.FieldConfigArgument{
 			"name": &graphql.ArgumentConfig{
 				Type: graphql.String,
@@ -60,6 +61,9 @@ var Mutations = graphql.Fields{
 				Type: graphql.String,
 			},
 			"facebookId": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+			"kakaoId": &graphql.ArgumentConfig{
 				Type: graphql.String,
 			},
 		},

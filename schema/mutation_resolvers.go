@@ -1,11 +1,14 @@
 package schema
 
 import (
-	"errors"
+	"fmt"
 	"log"
 
 	"github.com/graphql-go/graphql"
+	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 
+	"github.com/shjp/shjp-server/constant"
 	"github.com/shjp/shjp-server/models"
 )
 
@@ -74,18 +77,39 @@ func createMember(p graphql.ResolveParams) (interface{}, error) {
 		member.LastActive = &laStr
 	}
 
+	var accountKey string
+
 	if googleID := p.Args["googleId"]; googleID != nil {
-		gidStr := googleID.(string)
-		member.GoogleID = &gidStr
+		accountKey = fmt.Sprintf("gmail:%s", googleID.(string))
+		member.AccountType = constant.Gmail
 	}
 
 	if facebookID := p.Args["facebookId"]; facebookID != nil {
-		fidStr := facebookID.(string)
-		member.FacebookID = &fidStr
+		if member.AccountType != constant.Undefined {
+			return nil, errors.New("only one account type should exist")
+		}
+
+		accountKey = fmt.Sprintf("facebook:%s", facebookID.(string))
+		member.AccountType = constant.Facebook
 	}
 
-	err := member.Create()
+	if kakaoID := p.Args["kakaoId"]; kakaoID != nil {
+		if member.AccountType != constant.Undefined {
+			return nil, errors.New("only one account type should exist")
+		}
+
+		accountKey = fmt.Sprintf("kakao:%s", kakaoID.(string))
+		member.AccountType = constant.Kakao
+	}
+
+	hashByte, err := bcrypt.GenerateFromPassword([]byte(accountKey), bcrypt.DefaultCost)
 	if err != nil {
+		return nil, errors.Wrap(err, "failed generating hash")
+	}
+
+	member.AccountHash = string(hashByte)
+
+	if err = member.Create(); err != nil {
 		log.Println(err)
 	}
 
