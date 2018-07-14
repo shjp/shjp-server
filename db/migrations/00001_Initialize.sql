@@ -22,8 +22,8 @@ CREATE TABLE members (
   feast_day TIMESTAMP,
   created TIMESTAMP NOT NULL DEFAULT now(),
   last_active TIMESTAMP,
-  google_id   TEXT,
-  facebook_id TEXT
+  account_type TEXT,
+  account_hash TEXT
 );
 
 CREATE TABLE events (

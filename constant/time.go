@@ -1,4 +1,4 @@
-package schema
+package constant
 
 const (
 	timeFormat = "2006-01-02T15:04:05.000Z"

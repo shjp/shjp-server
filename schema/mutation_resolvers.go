@@ -1,13 +1,67 @@
 package schema
 
 import (
-	"errors"
+	"fmt"
 	"log"
 
 	"github.com/graphql-go/graphql"
+	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 
+	"github.com/shjp/shjp-server/auth"
+	"github.com/shjp/shjp-server/constant"
 	"github.com/shjp/shjp-server/models"
 )
+
+func login(p graphql.ResolveParams) (interface{}, error) {
+	if p.Args["accountId"] == nil {
+		return nil, errors.New("accountId must be present")
+	}
+	accountID := p.Args["accountId"].(string)
+
+	if p.Args["clientId"] == nil {
+		return nil, errors.New("clientId must be present")
+	}
+	clientID := p.Args["clientId"].(string)
+
+	if p.Args["accountType"] == nil {
+		return nil, errors.New("account type must be present")
+	}
+	loginType := p.Args["accountType"].(string)
+
+	var profileImage *string
+	if p.Args["profileImage"] == nil {
+		profileImage = nil
+	} else {
+		*profileImage = p.Args["profileImage"].(string)
+	}
+
+	var nickname *string
+	if p.Args["nickname"] == nil {
+		nickname = nil
+	} else {
+		*nickname = p.Args["nickname"].(string)
+	}
+
+	m := models.NewMember()
+	switch loginType {
+	case "email":
+		m.AccountType = constant.Email
+	case "kakao":
+		m.AccountType = constant.Kakao
+	case "facebook":
+		m.AccountType = constant.Facebook
+	case "gmail":
+		m.AccountType = constant.Gmail
+	default:
+		m.AccountType = constant.Undefined
+	}
+	if m.AccountType == constant.Undefined {
+		return nil, fmt.Errorf("Cannot recognize account type %s", loginType)
+	}
+
+	return m.Login(accountID, clientID, profileImage, nickname)
+}
 
 func createGroup(p graphql.ResolveParams) (interface{}, error) {
 	group := &models.Group{}
@@ -74,18 +128,40 @@ func createMember(p graphql.ResolveParams) (interface{}, error) {
 		member.LastActive = &laStr
 	}
 
+	var accountKey string
+
 	if googleID := p.Args["googleId"]; googleID != nil {
-		gidStr := googleID.(string)
-		member.GoogleID = &gidStr
+		accountKey = auth.FormatAccountHash("gmail", googleID.(string))
+		member.AccountType = constant.Gmail
 	}
 
 	if facebookID := p.Args["facebookId"]; facebookID != nil {
-		fidStr := facebookID.(string)
-		member.FacebookID = &fidStr
+		if member.AccountType != constant.Undefined {
+			return nil, errors.New("only one account type should exist")
+		}
+
+		accountKey = auth.FormatAccountHash("facebook", facebookID.(string))
+		member.AccountType = constant.Facebook
 	}
 
-	err := member.Create()
+	if kakaoID := p.Args["kakaoId"]; kakaoID != nil {
+		if member.AccountType != constant.Undefined {
+			return nil, errors.New("only one account type should exist")
+		}
+
+		accountKey = auth.FormatAccountHash("kakao", kakaoID.(string))
+		member.AccountType = constant.Kakao
+	}
+
+	hashByte, err := bcrypt.GenerateFromPassword([]byte(accountKey), bcrypt.DefaultCost)
 	if err != nil {
+		return nil, errors.Wrap(err, "failed generating hash")
+	}
+
+	fmt.Printf("account hash: %s\n", string(hashByte))
+	member.AccountHash = string(hashByte)
+
+	if err = member.Create(); err != nil {
 		log.Println(err)
 	}
 
