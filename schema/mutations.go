@@ -9,9 +9,34 @@ import (
 
 var Mutations = graphql.Fields{
 
+	"login": &graphql.Field{
+		Type:    types.UserSessionType,
+		Resolve: login,
+		Args: graphql.FieldConfigArgument{
+			"accountId": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"clientId": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"accountType": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"accountSecret": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"profileImage": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+			"nickname": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+		},
+	},
+
 	"createGroup": &graphql.Field{
 		Type:    types.GroupType,
-		Resolve: auth.Authenticate(createGroup),
+		Resolve: createGroup,
 		Args: graphql.FieldConfigArgument{
 			"name": &graphql.ArgumentConfig{
 				Type: graphql.String,
@@ -24,7 +49,7 @@ var Mutations = graphql.Fields{
 
 	"createRole": &graphql.Field{
 		Type:    types.RoleType,
-		Resolve: createRole,
+		Resolve: auth.Authenticate(createRole),
 		Args: graphql.FieldConfigArgument{
 			"name": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
@@ -65,6 +90,9 @@ var Mutations = graphql.Fields{
 			},
 			"kakaoId": &graphql.ArgumentConfig{
 				Type: graphql.String,
+			},
+			"accountSecret": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
 			},
 		},
 	},

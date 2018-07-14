@@ -4,13 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/graphql-go/graphql"
-	"github.com/shjp/shjp-server/auth"
+	"github.com/graphql-go/handler"
 	"github.com/shjp/shjp-server/db"
 	"github.com/shjp/shjp-server/schema"
+	"github.com/shjp/shjp-server/utils"
 )
 
 var (
@@ -43,14 +45,11 @@ func main() {
 		return
 	}
 
-	// Uncomment the below to test with GraphQL interface
-	//h := handler.New(&handler.Config{Schema: &schema, Pretty: true, GraphiQL: true})
-	//http.Handle("/graphql", h)
+	// Below handler is for dev purpose
+	interactiveGqHandler := handler.New(&handler.Config{Schema: &Schema, Pretty: true, GraphiQL: true})
+	http.Handle("/console", interactiveGqHandler)
 
 	http.HandleFunc("/graphql", graphqlHandler)
-
-	// TODO: move this to the GraphQL mutation type
-	http.HandleFunc("/login/kakao", auth.HandleKakaoLogin)
 
 	log.Println("Server listening to port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -71,5 +70,18 @@ func graphqlHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(result)
+	fmt.Printf("data = %+v\n", result.Data)
+	fmt.Printf("errors = %+v\n", result.Errors)
+
+	respJSON, err := json.Marshal(result)
+	if err != nil {
+		log.Printf("Error marshaling result: %s", err)
+		utils.SendErrorResponse(w, err, 500)
+		return
+	}
+
+	//fmt.Printf("resp = %s\n", string(respJSON))
+	//json.NewEncoder(w).Encode(result)
+
+	utils.SendResponse(w, string(respJSON), 200)
 }

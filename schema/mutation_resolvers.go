@@ -8,9 +8,60 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/shjp/shjp-server/auth"
 	"github.com/shjp/shjp-server/constant"
 	"github.com/shjp/shjp-server/models"
 )
+
+func login(p graphql.ResolveParams) (interface{}, error) {
+	if p.Args["accountId"] == nil {
+		return nil, errors.New("accountId must be present")
+	}
+	accountID := p.Args["accountId"].(string)
+
+	if p.Args["clientId"] == nil {
+		return nil, errors.New("clientId must be present")
+	}
+	clientID := p.Args["clientId"].(string)
+
+	if p.Args["accountType"] == nil {
+		return nil, errors.New("account type must be present")
+	}
+	loginType := p.Args["accountType"].(string)
+
+	var profileImage *string
+	if p.Args["profileImage"] == nil {
+		profileImage = nil
+	} else {
+		*profileImage = p.Args["profileImage"].(string)
+	}
+
+	var nickname *string
+	if p.Args["nickname"] == nil {
+		nickname = nil
+	} else {
+		*nickname = p.Args["nickname"].(string)
+	}
+
+	m := models.NewMember()
+	switch loginType {
+	case "email":
+		m.AccountType = constant.Email
+	case "kakao":
+		m.AccountType = constant.Kakao
+	case "facebook":
+		m.AccountType = constant.Facebook
+	case "gmail":
+		m.AccountType = constant.Gmail
+	default:
+		m.AccountType = constant.Undefined
+	}
+	if m.AccountType == constant.Undefined {
+		return nil, fmt.Errorf("Cannot recognize account type %s", loginType)
+	}
+
+	return m.Login(accountID, clientID, profileImage, nickname)
+}
 
 func createGroup(p graphql.ResolveParams) (interface{}, error) {
 	group := &models.Group{}
@@ -80,7 +131,7 @@ func createMember(p graphql.ResolveParams) (interface{}, error) {
 	var accountKey string
 
 	if googleID := p.Args["googleId"]; googleID != nil {
-		accountKey = fmt.Sprintf("gmail:%s", googleID.(string))
+		accountKey = auth.FormatAccountHash("gmail", googleID.(string))
 		member.AccountType = constant.Gmail
 	}
 
@@ -89,7 +140,7 @@ func createMember(p graphql.ResolveParams) (interface{}, error) {
 			return nil, errors.New("only one account type should exist")
 		}
 
-		accountKey = fmt.Sprintf("facebook:%s", facebookID.(string))
+		accountKey = auth.FormatAccountHash("facebook", facebookID.(string))
 		member.AccountType = constant.Facebook
 	}
 
@@ -98,7 +149,7 @@ func createMember(p graphql.ResolveParams) (interface{}, error) {
 			return nil, errors.New("only one account type should exist")
 		}
 
-		accountKey = fmt.Sprintf("kakao:%s", kakaoID.(string))
+		accountKey = auth.FormatAccountHash("kakao", kakaoID.(string))
 		member.AccountType = constant.Kakao
 	}
 
@@ -107,6 +158,7 @@ func createMember(p graphql.ResolveParams) (interface{}, error) {
 		return nil, errors.Wrap(err, "failed generating hash")
 	}
 
+	fmt.Printf("account hash: %s\n", string(hashByte))
 	member.AccountHash = string(hashByte)
 
 	if err = member.Create(); err != nil {

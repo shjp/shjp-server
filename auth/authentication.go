@@ -8,7 +8,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
-	"github.com/shjp/shjp-server/models"
 	"github.com/shjp/shjp-server/session"
 )
 
@@ -30,9 +29,14 @@ func Authenticate(resolver func(graphql.ResolveParams) (interface{}, error)) fun
 	}
 }
 
-func saveToSession(m *models.Member) (string, error) {
+func FormatAccountHash(provider, key string) string {
+	return fmt.Sprintf("%s:%s", provider, key)
+}
+
+// SaveToSession saves the given user info to the session
+func SaveToSession(id string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &LoginClaim{
-		Key: m.ID,
+		Key: id,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: 15000,
 			Issuer:    "shjp",
@@ -47,7 +51,7 @@ func saveToSession(m *models.Member) (string, error) {
 
 	fmt.Printf("signed string is: %s\n", ss)
 
-	sessionManager.Set("user", ss, m)
+	sessionManager.Set("user", ss, id)
 	return ss, nil
 }
 
