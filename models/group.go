@@ -11,9 +11,10 @@ import (
 // Group is a group model
 type Group struct {
 	// Core fields
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	ImageURI    *string `json:"imageUri"`
 
 	// Extra fields
 	Members []*Member `json:"members"`
@@ -39,11 +40,13 @@ func (g *Group) Create() error {
 		INSERT INTO groups (
 			id,
 			name,
-			description
-		) VALUES ($1, $2, $3)`,
+			description,
+			image_uri
+		) VALUES ($1, $2, $3, $4)`,
 		g.ID,
 		g.Name,
-		g.Description)
+		g.Description,
+		g.ImageURI)
 
 	if err != nil {
 		return err
@@ -127,7 +130,8 @@ func (g *Group) FindAll() ([]*Group, error) {
 		SELECT
 			id,
 			name,
-			description
+			description,
+			image_uri
 		FROM groups`)
 	if err != nil {
 		return gs, err
@@ -138,7 +142,8 @@ func (g *Group) FindAll() ([]*Group, error) {
 		err = rows.Scan(
 			&g.ID,
 			&g.Name,
-			&g.Description)
+			&g.Description,
+			&g.ImageURI)
 		if err != nil {
 			return gs, err
 		}

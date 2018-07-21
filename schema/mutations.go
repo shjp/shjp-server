@@ -44,6 +44,9 @@ var Mutations = graphql.Fields{
 			"description": &graphql.ArgumentConfig{
 				Type: graphql.String,
 			},
+			"imageUri": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
 		},
 	},
 

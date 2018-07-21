@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -23,6 +25,10 @@ var (
 
 	Schema graphql.Schema
 )
+
+type GraphQLPostBody struct {
+	Query string `json:"query"`
+}
 
 func main() {
 	flag.Parse()
@@ -58,11 +64,31 @@ func main() {
 func graphqlHandler(w http.ResponseWriter, r *http.Request) {
 	authToken := r.Header.Get("token")
 	log.Printf("url = %+v", r.URL)
-	log.Printf("query = %+v", r.URL.Query())
+
+	var requestString string
+	if r.Method == http.MethodGet {
+		requestString = r.URL.Query().Get("query")
+	} else if r.Method == http.MethodPost {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			utils.SendErrorResponse(w, errors.New("Cannot read POST body"), 400)
+			return
+		}
+		var queryWrapper GraphQLPostBody
+		if err = json.Unmarshal(body, &queryWrapper); err != nil {
+			utils.SendErrorResponse(w, errors.New("Failed parsing POST body. Did you forget query property?"), 400)
+			return
+		}
+		requestString = queryWrapper.Query
+	} else {
+		utils.SendErrorResponse(w, errors.New("Only GET and POST allowed for GraphQL request"), 400)
+		return
+	}
+	log.Printf("query = %s", requestString)
 
 	result := graphql.Do(graphql.Params{
 		Schema:        Schema,
-		RequestString: r.URL.Query().Get("query"),
+		RequestString: requestString,
 		Context:       context.WithValue(context.Background(), "token", authToken),
 	})
 	if len(result.Errors) > 0 {
@@ -79,9 +105,6 @@ func graphqlHandler(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, err, 500)
 		return
 	}
-
-	//fmt.Printf("resp = %s\n", string(respJSON))
-	//json.NewEncoder(w).Encode(result)
 
 	utils.SendResponse(w, string(respJSON), 200)
 }

@@ -74,6 +74,11 @@ func createGroup(p graphql.ResolveParams) (interface{}, error) {
 		group.Description = description.(string)
 	}
 
+	if imageURI := p.Args["imageUri"]; imageURI != nil {
+		imageURIStr := imageURI.(string)
+		group.ImageURI = &imageURIStr
+	}
+
 	err := group.Create()
 	if err != nil {
 		log.Println(err)

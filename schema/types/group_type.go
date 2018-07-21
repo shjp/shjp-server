@@ -11,6 +11,7 @@ var GroupType = graphql.NewObject(graphql.ObjectConfig{
 		"id":          &graphql.Field{Type: graphql.ID},
 		"name":        &graphql.Field{Type: graphql.String},
 		"description": &graphql.Field{Type: graphql.String},
+		"imageUri":    &graphql.Field{Type: graphql.String},
 		"members":     &graphql.Field{Type: graphql.NewList(MemberType)},
 	},
 })
