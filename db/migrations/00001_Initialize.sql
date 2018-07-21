@@ -4,7 +4,8 @@
 CREATE TABLE groups (
   id UUID PRIMARY KEY NOT NULL,
   name VARCHAR(60) NOT NULL,
-  description TEXT
+  description TEXT,
+  image_uri TEXT
 );
 
 CREATE TABLE roles (
