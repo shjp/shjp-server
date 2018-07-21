@@ -11,10 +11,10 @@ import (
 // Group is a group model
 type Group struct {
 	// Core fields
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	ImageURI    *string `json:"imageUri"`
+	ID          string      `json:"id"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	ImageURI    interface{} `json:"imageUri"` // nullable string
 
 	// Extra fields
 	Members []*Member `json:"members"`
