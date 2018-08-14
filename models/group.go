@@ -68,12 +68,14 @@ func (g *Group) Find() error {
 		QueryRow(`
 			SELECT
 				name,
-				description
+				description,
+				image_uri
 			FROM groups
 			WHERE id = $1`, g.ID).
 		Scan(
 			&g.Name,
-			&g.Description); err != nil {
+			&g.Description,
+			&g.ImageURI); err != nil {
 		return err
 	}
 
